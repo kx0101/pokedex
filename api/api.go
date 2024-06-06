@@ -19,6 +19,29 @@ type LocationsResponse struct {
 	Locations []Location `json:"results"`
 }
 
+type Stats struct {
+	Base   int `json:"base_stat"`
+	Effort int `json:"effort"`
+	Stat   struct {
+		Name string `json:"name"`
+	} `json:"stat"`
+}
+
+type Types struct {
+	Type struct {
+		Name string `json:"name"`
+	} `json:"type"`
+}
+
+type PokemonStats struct {
+	Name           string  `json:"name"`
+	BaseExperience int     `json:"base_experience"`
+	Height         int     `json:"height"`
+	Weight         int     `json:"weight"`
+	Stats          []Stats `json:"stats"`
+	Types          []Types `json:"types"`
+}
+
 type Pokemon struct {
 	Name string `json:"name"`
 }
@@ -79,7 +102,7 @@ func FetchLocations(url string) (LocationsResponse, error) {
 	err := fetch(url, &result)
 	responseData, errParse := json.Marshal(result)
 	if errParse != nil {
-		fmt.Println("error while marshaling results of locations.")
+		return result, fmt.Errorf("error while marshaling results of locations: %s", err)
 	}
 
 	shared.PokeCache.Add(url, responseData)
@@ -108,10 +131,38 @@ func FetchLocation(location string) (LocationResponse, error) {
 	err := fetch(shared.GetPokemonsFromLocationURL+location, &result)
 	responseData, errParse := json.Marshal(result)
 	if errParse != nil {
-		fmt.Println("error while marshaling pokemon encounters")
+		return result, fmt.Errorf("error while marshaling pokemon encounters: %s", err)
 	}
 
 	shared.PokeCache.Add(location, responseData)
 
 	return result, err
+}
+
+func FetchPokemon(pokemon string) (PokemonStats, error) {
+	var result PokemonStats
+
+	entry, exists := shared.PokeCache.Get(pokemon)
+	if exists {
+		var cachedPokemonStats PokemonStats
+		err := json.Unmarshal(entry, &cachedPokemonStats)
+
+		if err == nil {
+			return cachedPokemonStats, nil
+		}
+	}
+
+	err := fetch(shared.GetPokemonDataURL+pokemon, &result)
+	if err != nil {
+		return result, fmt.Errorf("error while fetching for pokemon data: %s", err)
+	}
+
+	responseData, errParse := json.Marshal(result)
+	if errParse != nil {
+		return result, fmt.Errorf("error while marshaling pokemon data: %s", errParse)
+	}
+
+	shared.PokeCache.Add(pokemon, responseData)
+
+	return result, nil
 }

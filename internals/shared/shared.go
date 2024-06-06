@@ -10,5 +10,6 @@ var (
 	PrevLocationURL            = ""
 	NextLocationURL            = ""
 	GetPokemonsFromLocationURL = "https://pokeapi.co/api/v2/location-area/"
+	GetPokemonDataURL          = "https://pokeapi.co/api/v2/pokemon/"
 	PokeCache                  = cache.NewCache(time.Second * 5)
 )

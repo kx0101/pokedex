@@ -26,6 +26,15 @@ func ExploreLocation(location api.Location) error {
 	return nil
 }
 
+func FindPokemon(pokemonName string) (api.PokemonStats, error) {
+	pokemonStats, err := api.FetchPokemon(pokemonName)
+	if err != nil {
+		return api.PokemonStats{}, fmt.Errorf("error while fetching for data of pokemon: %s", err)
+	}
+
+	return pokemonStats, nil
+}
+
 func PrintLocations(locations []api.Location) {
 	for _, location := range locations {
 		fmt.Println(location.Name)
