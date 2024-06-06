@@ -57,6 +57,11 @@ func InitCommands() {
 			Description: "Inspect your pokemon: inspect <pokemon-name>",
 			Callback:    commandInspect,
 		},
+		"pokedex": {
+			Name:        "pokedex",
+			Description: "View your pokedex",
+			Callback:    commandPokedex,
+		},
 	}
 }
 
@@ -167,5 +172,14 @@ func commandInspect(args ...string) error {
 	}
 
 	fmt.Println(string(prettyFormat))
+	return nil
+}
+
+func commandPokedex(args ...string) error {
+	for pokemon := range Pokedex {
+		fmt.Printf("\n- %s", pokemon)
+	}
+
+	fmt.Println()
 	return nil
 }
