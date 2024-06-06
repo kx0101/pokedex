@@ -1,16 +1,20 @@
 package commands
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/kx0101/pokedex/api"
+	cache "github.com/kx0101/pokedex/internals/cache"
 )
 
 var (
 	currentLocationURL = "https://pokeapi.co/api/v2/location/?offset=0&limit=20"
 	prevLocationURL    = ""
 	nextLocationURL    = ""
+	pokecache          = cache.NewCache(time.Second * 5)
 )
 
 type ClipCommand struct {
@@ -93,12 +97,31 @@ func fetchLocations(url string) error {
 		url = currentLocationURL
 	}
 
+	entry, exists := pokecache.Get(url)
+
+	if exists {
+		var cachedResults []api.Location
+		err := json.Unmarshal(entry, &cachedResults)
+
+		if err == nil {
+			printLocations(cachedResults)
+			return nil
+		}
+	}
+
 	response, err := api.FetchLocations(url)
 	if err != nil {
 		return fmt.Errorf("error while fetching locations: %d", err)
 	}
 
 	printLocations(response.Results)
+
+	responseData, err := json.Marshal(response.Results)
+	if err != nil {
+		fmt.Println("error while marshaling results of locations.")
+	}
+
+	pokecache.Add(url, responseData)
 
 	nextLocationURL = response.Next
 	prevLocationURL = response.Previous

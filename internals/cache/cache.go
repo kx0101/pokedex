@@ -54,10 +54,14 @@ func (c *Cache) Add(key string, val []byte) {
 	}
 }
 
-func (c *Cache) Get(key string) (cacheEntry, bool) {
+func (c *Cache) Get(key string) ([]byte, bool) {
 	c.cacheMu.RLock()
 	defer c.cacheMu.RUnlock()
 
 	entry, exists := c.cache[key]
-	return entry, exists
+	if !exists {
+		return nil, false
+	}
+
+	return entry.val, true
 }
