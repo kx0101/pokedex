@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/kx0101/pokedex/api"
 	"github.com/kx0101/pokedex/internals/shared"
 	"github.com/kx0101/pokedex/internals/util"
 )
@@ -11,7 +12,7 @@ import (
 type ClipCommand struct {
 	Name        string
 	Description string
-	Callback    func() error
+	Callback    func(args ...string) error
 }
 
 var Commands = map[string]ClipCommand{}
@@ -40,13 +41,13 @@ func InitCommands() {
 		},
 		"explore": {
 			Name:        "explore",
-			Description: "Explore a specific area",
+			Description: "Explore a specific area for pokemons",
 			Callback:    commandExplore,
 		},
 	}
 }
 
-func commandHelp() error {
+func commandHelp(args ...string) error {
 	fmt.Println("\nWelcome to Pokedex!")
 	fmt.Println("Available commands: ")
 
@@ -59,14 +60,14 @@ func commandHelp() error {
 	return nil
 }
 
-func commandExit() error {
+func commandExit(args ...string) error {
 	fmt.Println("Exiting the Pokedex...")
 	os.Exit(1)
 	return nil
 }
 
-func commandMap() error {
-	err := util.FetchLocations(shared.NextLocationURL)
+func commandMap(args ...string) error {
+	err := util.FindLocations(shared.NextLocationURL)
 	if err != nil {
 		return fmt.Errorf("error while fetching locations: %d", err)
 	}
@@ -74,13 +75,13 @@ func commandMap() error {
 	return nil
 }
 
-func commandBack() error {
+func commandBack(args ...string) error {
 	if shared.PrevLocationURL == "" {
 		fmt.Println("no previous locations available.")
 		return nil
 	}
 
-	err := util.FetchLocations(shared.PrevLocationURL)
+	err := util.FindLocations(shared.PrevLocationURL)
 	if err != nil {
 		return fmt.Errorf("error while fetching locations: %d", err)
 	}
@@ -88,6 +89,18 @@ func commandBack() error {
 	return nil
 }
 
-func commandExplore() error {
+func commandExplore(args ...string) error {
+	if len(args) == 0 {
+		return fmt.Errorf("you need to provide an area name: explore <area-name>")
+	}
+
+	areaName := args[0]
+	fmt.Printf("Exploring %s...\n", areaName)
+
+	location := api.Location{
+		Name: areaName,
+	}
+
+	util.ExploreLocation(location)
 	return nil
 }

@@ -6,8 +6,9 @@ import (
 )
 
 var (
-	CurrentLocationURL = "https://pokeapi.co/api/v2/location/?offset=0&limit=20"
-	PrevLocationURL    = ""
-	NextLocationURL    = ""
-	PokeCache          = cache.NewCache(time.Second * 5)
+	CurrentLocationURL         = "https://pokeapi.co/api/v2/location-area/?offset=0&limit=20"
+	PrevLocationURL            = ""
+	NextLocationURL            = ""
+	GetPokemonsFromLocationURL = "https://pokeapi.co/api/v2/location-area/"
+	PokeCache                  = cache.NewCache(time.Second * 5)
 )

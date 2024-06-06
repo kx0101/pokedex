@@ -1,46 +1,28 @@
 package util
 
 import (
-	"encoding/json"
 	"fmt"
+
 	"github.com/kx0101/pokedex/api"
-	"github.com/kx0101/pokedex/internals/shared"
 )
 
-func FetchLocations(url string) error {
-	if url == "" {
-		url = shared.CurrentLocationURL
-	}
-
-	entry, exists := shared.PokeCache.Get(url)
-
-	if exists {
-		var cachedResults []api.Location
-		err := json.Unmarshal(entry, &cachedResults)
-
-		if err == nil {
-			PrintLocations(cachedResults)
-			return nil
-		}
-	}
-
+func FindLocations(url string) error {
 	response, err := api.FetchLocations(url)
 	if err != nil {
 		return fmt.Errorf("error while fetching locations: %d", err)
 	}
 
-	PrintLocations(response.Results)
+	PrintLocations(response.Locations)
+	return nil
+}
 
-	responseData, err := json.Marshal(response.Results)
+func ExploreLocation(location api.Location) error {
+	pokemonEncounters, err := api.FetchLocation(location.Name)
 	if err != nil {
-		fmt.Println("error while marshaling results of locations.")
+		return fmt.Errorf("error while fetching for pokemons of the location: %s", err)
 	}
 
-	shared.PokeCache.Add(url, responseData)
-
-	shared.NextLocationURL = response.Next
-	shared.PrevLocationURL = response.Previous
-
+	PrintPokemonNames(pokemonEncounters.PokemonEncounters)
 	return nil
 }
 
@@ -48,4 +30,16 @@ func PrintLocations(locations []api.Location) {
 	for _, location := range locations {
 		fmt.Println(location.Name)
 	}
+}
+
+func PrintPokemonNames(pokemonEncounters []api.PokemonEncounter) {
+	fmt.Println("Found Pokemon:")
+	fmt.Println()
+
+	for _, pokemonEncounter := range pokemonEncounters {
+		fmt.Printf("\n- %s", pokemonEncounter.Pokemon.Name)
+	}
+
+	fmt.Println()
+	fmt.Println()
 }
